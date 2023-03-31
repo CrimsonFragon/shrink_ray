@@ -17,4 +17,12 @@ async function addNewUser(username: string, passwordHash: string): Promise<User 
   return newUser;
 }
 
-export { getUserByUsername, addNewUser };
+async function getUserById(userId: string): Promise<User | null> {
+  return await userRepository
+    .createQueryBuilder('user')
+    .leftJoinAndSelect('user.links', 'links')
+    .where('user.userId = :userId', { userId })
+    .getOne();
+}
+
+export { getUserByUsername, addNewUser, getUserById };
