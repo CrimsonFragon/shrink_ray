@@ -1,4 +1,5 @@
-import { AppDataSource } from '../dataSource';
+import { createHash } from 'crypto';
+// import { AppDataSource } from '../dataSource';
 import { Link } from '../entities/Link';
 
 async function getLinkById(linkId: string): Promise<Link | null> {
