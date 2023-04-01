@@ -38,4 +38,42 @@ async function updateLinkVisits(link: Link): Promise<Link> {
   return link;
 }
 
-export { getLinkById, createLinkId, createNewLink, updateLinkVisits };
+async function getLinksByUserId(userId: string): Promise<Link[]> {
+  const links = await linkRepository
+    .createQueryBuilder('link')
+    .where({ user: { userId } })
+    .leftJoin('link.user', 'user')
+    .select(['link.linkId', 'link.originalUrl', 'user.userId', 'user.username', 'user.isAdmin'])
+    .getMany();
+
+  return links;
+}
+
+async function getLinksByUserIdForOwnAccount(userId: string): Promise<Link[]> {
+  const links = await linkRepository
+    .createQueryBuilder('link')
+    .where({ user: { userId } })
+    .leftJoin('link.user', 'user')
+    .select([
+      'link.linkId',
+      'link.originalUrl',
+      'link.numHits',
+      'link.lastAccessedOn',
+      'user.userId',
+      'user.username',
+      'user.isPro',
+      'user.isAdmin',
+    ])
+    .getMany();
+
+  return links;
+}
+
+export {
+  getLinkById,
+  createLinkId,
+  createNewLink,
+  updateLinkVisits,
+  getLinksByUserId,
+  getLinksByUserIdForOwnAccount,
+};

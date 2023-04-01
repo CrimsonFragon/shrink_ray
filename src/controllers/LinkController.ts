@@ -1,5 +1,12 @@
 import { Request, Response } from 'express';
-import { createLinkId, createNewLink, getLinkById, updateLinkVisits } from '../models/LinkModel';
+import {
+  createLinkId,
+  createNewLink,
+  getLinkById,
+  updateLinkVisits,
+  getLinksByUserId,
+  getLinksByUserIdForOwnAccount,
+} from '../models/LinkModel';
 import { getUserById } from '../models/UserModel';
 import { parseDatabaseError } from '../utils/db-utils';
 
