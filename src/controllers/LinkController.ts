@@ -59,4 +59,33 @@ async function getOriginalUrl(req: Request, res: Response): Promise<void> {
   res.redirect(302, link.originalUrl);
 }
 
-export default { shortenUrl, getOriginalUrl };
+async function getLinksForUser(req: Request, res: Response): Promise<void> {
+  const { userId } = req.params as TargetUserRequest;
+
+  const user = await getUserById(userId);
+  if (!user) {
+    res.sendStatus(404);
+    return;
+  }
+
+  try {
+    if (req.session.isLoggedIn) {
+      if (
+        req.session.authenticatedUser.userId === userId ||
+        req.session.authenticatedUser.isAdmin
+      ) {
+        const links = await getLinksByUserIdForOwnAccount(userId);
+        res.json(links);
+      } else {
+        const links = await getLinkById(userId);
+        res.json(links);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    const databaseErrorMessage = parseDatabaseError(err);
+    res.status(500).json(databaseErrorMessage);
+  }
+}
+
+export default { shortenUrl, getOriginalUrl, getLinksForUser };
