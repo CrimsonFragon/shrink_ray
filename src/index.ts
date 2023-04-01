@@ -5,7 +5,7 @@ import session from 'express-session';
 import connectSqlite3 from 'connect-sqlite3';
 
 import { registerUser, logIn } from './controllers/UserController';
-// import {} from './controllers/LinkController';
+import { shortenUrl, getOriginalUrl } from './controllers/LinkController';
 
 const app: Express = express();
 const { PORT, COOKIE_SECRET } = process.env;
@@ -27,6 +27,8 @@ app.use(express.json());
 
 app.post('/api/users', registerUser); // Create an account
 app.post('/api/login', logIn); // Log in to an account
+app.post('/api/shortenUrl', shortenUrl); // Log in to an account
+app.get('/shortenUrl', shortenUrl); // Log in to an account
 
 app.listen(PORT, () => {
   console.log(`server listening on http://localhost:${PORT}`);

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { createLinkId, createNewLink } from '../models/LinkModel';
+import { createLinkId, createNewLink, getLinkById, updateLinkVisits } from '../models/LinkModel';
 import { getUserById } from '../models/UserModel';
 import { parseDatabaseError } from '../utils/db-utils';
 
@@ -28,16 +28,28 @@ async function shortenUrl(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  // Generate a `linkID
+  // Generate a `linkID`
   try {
     const linkId = createLinkId(originalUrl, userId);
     const newLink = await createNewLink(originalUrl, linkId, user);
     res.status(201).json(newLink);
   } catch (err) {
-    console.error(err);
+    console.log(err);
     const databaseErrorMessage = parseDatabaseError(err);
     res.status(500).json(databaseErrorMessage);
   }
 }
 
-export default { shortenUrl };
+async function getOriginalUrl(req: Request, res: Response): Promise<void> {
+  const { linkId } = req.params as LinkIdParam;
+  const link = await getLinkById(linkId);
+  if (!link) {
+    res.sendStatus(404);
+    return;
+  }
+
+  updateLinkVisits(link);
+  res.redirect(302, link.originalUrl);
+}
+
+export default { shortenUrl, getOriginalUrl };

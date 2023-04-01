@@ -3,12 +3,13 @@ import { createHash } from 'crypto';
 import { Link } from '../entities/Link';
 
 async function getLinkById(linkId: string): Promise<Link | null> {
-  return await linkRepository
+  const link = await linkRepository
     .createQueryBuilder('link')
     .leftJoinAndSelect('link.user', 'user')
     .where('link.linkId = :linkId', { linkId })
     .select(['link', 'user.userId', 'user.username', 'user.isAdmin', 'user.isPro'])
     .getOne();
+  return link;
 }
 
 function createLinkId(originalUrl: string, userId: string): string {
@@ -30,4 +31,11 @@ async function createNewLink(originalUrl: string, linkId: string, creator: User)
   return link;
 }
 
-export { getLinkById, createLinkId, createNewLink };
+async function updateLinkVisits(link: Link): Promise<Link> {
+  link.numHits += 1;
+  link.lastAccessedOn = new Date();
+  link = await linkRepository.save(link);
+  return link;
+}
+
+export { getLinkById, createLinkId, createNewLink, updateLinkVisits };
