@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create an account | Shrink Ray</title>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Log In | Shrink Ray</title>
 </head>
 <body>
     <div class="formCard">
         <section class="form-container">
             <div>
                 <h1 class="title gradient-text">Shrink Ray</h1>
-                <h2>Create an Account</h2>
+                <h2>Log In</h2>
             </div>
 
             <div class="form">
-                <form method="POST" action="/api/users">
+                <form method="POST" action="/api/login">
                     <label for="username">Username:</label>
                     <input type="text" name="username" id="username" class="text" placeholder="Username" required>
 
                     <label for="password">Password:</label>
                     <input type="password" name="password" id="password" class="password" placeholder="Password" required>
 
-                    <button type="submit" class="btn">Create Account</button>
+                    <button type="submit" class="btn">Log In</button>
                 </form>
             </div>
         </section>
