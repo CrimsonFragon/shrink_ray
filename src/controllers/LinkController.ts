@@ -1,91 +1,100 @@
 import { Request, Response } from 'express';
+import { parseDatabaseError } from '../utils/db-utils';
 import {
-  createLinkId,
   createNewLink,
-  getLinkById,
-  updateLinkVisits,
   getLinksByUserId,
+  updateLinkVisits,
+  createLinkId,
+  getLinkById,
   getLinksByUserIdForOwnAccount,
+  deleteLink,
 } from '../models/LinkModel';
 import { getUserById } from '../models/UserModel';
-import { parseDatabaseError } from '../utils/db-utils';
 
 async function shortenUrl(req: Request, res: Response): Promise<void> {
-  const { originalUrl } = req.body as NewLinkRequest;
-
-  // Make sure the user is logged in
   if (!req.session.isLoggedIn) {
-    res.sendStatus(401);
+    res.sendStatus(403);
     return;
   }
 
-  // Get the userId from req.session
-  const { userId, isAdmin, isPro } = req.session.authenticatedUser;
+  // Get the userId from `req.session`
+  const { authenticatedUser } = req.session;
 
-  // Retrieve the user's account data using their ID
-  const user = await getUserById(userId);
+  const user = await getUserById(authenticatedUser.userId);
   if (!user) {
     res.sendStatus(404);
     return;
   }
 
-  // Check if the user is neither a "pro" nor an "admin" account
-  if (!(isAdmin || isPro) && user.links.length >= 5) {
+  if ((!user.isPro || !user.isAdmin) && user.links.length >= 5) {
     res.sendStatus(403);
     return;
   }
 
-  // Generate a `linkID`
+  const { originalUrl } = req.body as NewLinkRequest;
+
+  const linkId = createLinkId(originalUrl, user.userId);
+
   try {
-    const linkId = createLinkId(originalUrl, userId);
     const newLink = await createNewLink(originalUrl, linkId, user);
+    newLink.user.passwordHash = undefined;
     res.status(201).json(newLink);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     const databaseErrorMessage = parseDatabaseError(err);
     res.status(500).json(databaseErrorMessage);
   }
 }
 
-async function getOriginalUrl(req: Request, res: Response): Promise<void> {
-  const { linkId } = req.params as LinkIdParam;
-  const link = await getLinkById(linkId);
+async function visitLink(req: Request, res: Response): Promise<void> {
+  const { targetLinkId } = req.params as LinkParam;
+
+  const link = await getLinkById(targetLinkId);
   if (!link) {
     res.sendStatus(404);
     return;
   }
 
-  updateLinkVisits(link);
-  res.redirect(302, link.originalUrl);
+  await updateLinkVisits(link);
+
+  res.redirect(301, link.originalUrl);
 }
 
-async function getLinksForUser(req: Request, res: Response): Promise<void> {
-  const { userId } = req.params as TargetUserRequest;
+async function getLinks(req: Request, res: Response): Promise<void> {
+  const { targetUserId } = req.params as UserIdParam;
 
-  const user = await getUserById(userId);
-  if (!user) {
+  let links;
+  if (!req.session.isLoggedIn || req.session.authenticatedUser.userId !== targetUserId) {
+    links = await getLinksByUserId(targetUserId);
+  } else {
+    links = await getLinksByUserIdForOwnAccount(targetUserId);
+  }
+
+  res.json(links);
+}
+
+async function removeLink(req: Request, res: Response): Promise<void> {
+  const { targetUserId, targetLinkId } = req.params as DeleteLinkRequest;
+  const { isLoggedIn, authenticatedUser } = req.session;
+  if (!isLoggedIn) {
+    res.sendStatus(401);
+    return;
+  }
+
+  const link = await getLinkById(targetLinkId);
+  if (!link) {
     res.sendStatus(404);
     return;
   }
 
-  try {
-    if (req.session.isLoggedIn) {
-      if (
-        req.session.authenticatedUser.userId === userId ||
-        req.session.authenticatedUser.isAdmin
-      ) {
-        const links = await getLinksByUserIdForOwnAccount(userId);
-        res.json(links);
-      } else {
-        const links = await getLinkById(userId);
-        res.json(links);
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    const databaseErrorMessage = parseDatabaseError(err);
-    res.status(500).json(databaseErrorMessage);
+  if (authenticatedUser.userId !== targetUserId && !authenticatedUser.isAdmin) {
+    res.sendStatus(403);
+    return;
   }
+
+  await deleteLink(targetLinkId);
+
+  res.sendStatus(200);
 }
 
-export default { shortenUrl, getOriginalUrl, getLinksForUser };
+export { shortenUrl, visitLink, getLinks, removeLink };

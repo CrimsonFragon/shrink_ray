@@ -4,20 +4,19 @@ import { addNewUser, getUserByUsername } from '../models/UserModel';
 import { parseDatabaseError } from '../utils/db-utils';
 
 async function registerUser(req: Request, res: Response): Promise<void> {
-  const { username, password } = req.body as NewUserRequest;
+  const { username, password } = req.body as AuthRequest;
 
-  const existingUser = await getUserByUsername(username);
-  if (existingUser) {
+  const user = await getUserByUsername(username);
+  if (user) {
     res.sendStatus(409);
     return;
   }
 
-  // IMPORTANT: Hash the password
   const passwordHash = await argon2.hash(password);
+
   try {
-    // IMPORTANT: Store the `passwordHash` and NOT the plaintext password
     const newUser = await addNewUser(username, passwordHash);
-    console.log(newUser);
+
     res.status(201).json(newUser);
   } catch (err) {
     console.error(err);
@@ -27,22 +26,21 @@ async function registerUser(req: Request, res: Response): Promise<void> {
 }
 
 async function logIn(req: Request, res: Response): Promise<void> {
-  const { username, password } = req.body as NewUserRequest;
-  const user = await getUserByUsername(username);
+  const { username, password } = req.body as AuthRequest;
 
+  const user = await getUserByUsername(username);
   if (!user) {
-    res.sendStatus(404);
+    res.sendStatus(404); // 404 Not Found - email doesn't exist
     return;
   }
+
   const { passwordHash } = user;
   if (!(await argon2.verify(passwordHash, password))) {
     res.sendStatus(404); // 404 Not Found - user with email/pass doesn't exist
     return;
   }
 
-  // NOTES: Remember to clear the session before setting their authenticated session data
   await req.session.clearSession();
-
   req.session.authenticatedUser = {
     userId: user.userId,
     username: user.username,
@@ -54,4 +52,4 @@ async function logIn(req: Request, res: Response): Promise<void> {
   res.sendStatus(200);
 }
 
-export default { registerUser, logIn };
+export { registerUser, logIn };
