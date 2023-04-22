@@ -38,7 +38,7 @@ async function shortenUrl(req: Request, res: Response): Promise<void> {
   try {
     const newLink = await createNewLink(originalUrl, linkId, user);
     newLink.user.passwordHash = undefined;
-    res.status(201).json(newLink);
+    res.redirect(`/api/users/${user.userId}/links`);
   } catch (err) {
     console.error(err);
     const databaseErrorMessage = parseDatabaseError(err);
@@ -70,7 +70,12 @@ async function getLinks(req: Request, res: Response): Promise<void> {
     links = await getLinksByUserIdForOwnAccount(targetUserId);
   }
 
-  res.json(links);
+  const targetUser = await getUserById(targetUserId);
+  const { protocol } = req;
+  const host = req.get('host');
+  const url = `${protocol}://${host}`;
+
+  res.render('linksPage', { targetUser, links, url });
 }
 
 async function removeLink(req: Request, res: Response): Promise<void> {
@@ -94,7 +99,7 @@ async function removeLink(req: Request, res: Response): Promise<void> {
 
   await deleteLink(targetLinkId);
 
-  res.sendStatus(200);
+  res.redirect(`/api/users/${targetUserId}/links`);
 }
 
 export { shortenUrl, visitLink, getLinks, removeLink };

@@ -15,9 +15,10 @@ async function registerUser(req: Request, res: Response): Promise<void> {
   const passwordHash = await argon2.hash(password);
 
   try {
-    const newUser = await addNewUser(username, passwordHash);
+    await addNewUser(username, passwordHash);
 
-    res.status(201).json(newUser);
+    // res.status(201).json(newUser);  Now we can redirect to login instead of sending raw data
+    res.redirect('/login');
   } catch (err) {
     console.error(err);
     const databaseErrorMessage = parseDatabaseError(err);
@@ -30,13 +31,13 @@ async function logIn(req: Request, res: Response): Promise<void> {
 
   const user = await getUserByUsername(username);
   if (!user) {
-    res.sendStatus(404); // 404 Not Found - email doesn't exist
+    res.redirect('/login');
     return;
   }
 
   const { passwordHash } = user;
   if (!(await argon2.verify(passwordHash, password))) {
-    res.sendStatus(404); // 404 Not Found - user with email/pass doesn't exist
+    res.redirect('/login');
     return;
   }
 
@@ -49,7 +50,8 @@ async function logIn(req: Request, res: Response): Promise<void> {
   };
   req.session.isLoggedIn = true;
 
-  res.sendStatus(200);
+  // res.sendStatus(200); Now we can redirect to another page instead of using a generic status
+  res.redirect('/shrink');
 }
 
 export { registerUser, logIn };

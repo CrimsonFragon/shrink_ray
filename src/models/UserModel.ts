@@ -9,6 +9,8 @@ async function getUserById(userId: string): Promise<User | null> {
 }
 
 async function getUserByUsername(username: string): Promise<User | null> {
+  console.log({ username });
+
   const user = await userRepository
     .createQueryBuilder('user')
     .leftJoinAndSelect('user.links', 'links')

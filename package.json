@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "npx tsc",
-    "start": "node --experimental-loader=extensionless --es-module-specifier-resolution=node --no-warning ./dist/index.js",
+    "start": "node --experimental-loader=extensionless --es-module-specifier-resolution=node --no-warnings ./dist/index.js",
     "compile": "npm run clean && npx tsc --watch",
     "clean": "rimraf ./dist/",
     "start-dev": "node --experimental-loader=extensionless --es-module-specifier-resolution=node --no-warnings --watch ./dist/index.js",
@@ -57,6 +57,6 @@
     "nodemailer": "^6.9.1",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.1.4",
-    "typeorm": "0.3.12"
+    "typeorm": "^0.3.13"
   }
 }

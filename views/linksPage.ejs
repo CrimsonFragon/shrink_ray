@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= targetUser.username %>'s Shrunken Links | Shrink Ray</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <table class="linksTable">
+      <tr class="tableHeaders">
+        <th>linkId</th>
+        <th>Original URL</th>
+        <th>Last Accessed</th>
+        <th># of Clicks</th>
+        <th>Shrunken Link</th>
+      </tr>
+      <% for( const link of links ) { %>
+      <tr class="link">
+        <td><%= link.linkId %></td>
+        <td><a href="<%= link.originalUrl %>"><%= link.originalUrl %></a></td>
+        <td><%= link.lastAccessedOn %></td>
+        <td><%= link.numHits %></td>
+        <td><a href="/<%= link.linkId %>"><%= url %>/<%= link.linkId %></a></td>
+      </tr>
+      <% } %>
+    </table>
+  </body>
+</html>

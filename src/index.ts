@@ -12,9 +12,7 @@ const app: Express = express();
 const { PORT, COOKIE_SECRET } = process.env;
 
 const SQLiteStore = connectSqlite3(session);
-
-app.use(express.static('public', { extensions: ['html'] }));
-
+app.set('view engine', 'ejs');
 app.use(
   session({
     store: new SQLiteStore({ db: 'sessions.sqlite' }),
@@ -26,8 +24,9 @@ app.use(
   })
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public', { extensions: ['html'] }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.post('/api/users', registerUser); // Create an account
 app.post('/api/login', logIn); // Log in to an account
